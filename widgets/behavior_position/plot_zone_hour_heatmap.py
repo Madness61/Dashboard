@@ -1,51 +1,83 @@
 import pandas as pd
 import plotly.express as px
+
 from widgets.utils import load_behavior_data
+from widgets.behavior_position.zone_learning import (
+    get_or_fit_kmeans_for_date,
+    assign_zone_labels,
+)
 
-PKL_FOLDER = "data/action_detection/loaded"
+def generate_zone_hour_heatmap(
+    folder_path: str,
+    behavior: str,
+    date: str,
+    n_clusters: int = 4,
+    fit_sample_fraction: float = 0.20,          # fürs *Tages*-Modell (stabil pro Datum)
+    predict_sample_fraction: float | None = 0.25,  # Sampling fürs Zählen (None = alle)
+    max_fit_points: int = 20_000,
+    random_state: int = 42,
+):
+    if not date:
+        return _err("Kein Datum gewählt.")
 
-# 🧱 Manuell definierte Zonen
-ZONES = [
-    {"name": "Fressen",     "x1": 600, "x2": 820, "y1": 300, "y2": 460},
-    {"name": "Liegen",      "x1": 300, "x2": 600, "y1": 400, "y2": 460},
-    {"name": "Spielen",     "x1": 100, "x2": 300, "y1": 200, "y2": 400},
-    {"name": "Gangzone",    "x1": 100, "x2": 820, "y1": 80,  "y2": 300}
-]
+    df_all = load_behavior_data(folder_path)
+    if df_all is None or df_all.empty:
+        return _err("Keine Daten geladen.")
 
-def generate_zone_hour_heatmap(folder_path, behavior="feeding", date=None):
-    df = load_behavior_data(folder_path)
+    day = pd.to_datetime(date).date()
+    df_day = df_all[df_all["date"] == day]
+    if df_day.empty:
+        return _err(f"Keine Daten am {date}")
+
+    # 🔒 Zonenmodell PRO TAG (ohne Verhaltensfilter) -> Zonen bleiben bei Verhaltenswechsel konstant
+    kmeans, feat_cols = get_or_fit_kmeans_for_date(
+        folder_path=folder_path,
+        date=date,
+        n_clusters=n_clusters,
+        sample_fraction=fit_sample_fraction,
+        max_points=max_fit_points,
+        random_state=random_state,
+    )
+    if kmeans is None:
+        return _err("Zonenlernen fehlgeschlagen.")
+
+    # Für die Heatmap nach Verhalten filtern (Zonen bleiben gleich)
+    df = df_day[df_day["dominant_behavior"] == behavior]
     if df.empty:
-        return "Keine Daten vorhanden."
+        return _err(f"Keine Daten für {behavior} am {date}")
 
-    if date:
-        df = df[df['date'] == pd.to_datetime(date).date()]
-    if behavior:
-        df = df[df['dominant_behavior'] == behavior]
-    if df.empty:
-        return f"Keine Daten für {behavior} am {date}"
+    # Optionales Sampling fürs Zählen + Hochrechnung
+    scale = 1.0
+    if predict_sample_fraction and 0 < predict_sample_fraction < 1.0:
+        n = max(1, int(len(df) * predict_sample_fraction))
+        if n < len(df):
+            df = df.sample(n=n, random_state=random_state)
+            scale = len(df) / n
 
-    # 🔁 Zonen zuweisen
-    def assign_zone(row):
-        for zone in ZONES:
-            if zone["x1"] <= row["x_center"] <= zone["x2"] and zone["y1"] <= row["y_center"] <= zone["y2"]:
-                return zone["name"]
-        return "Unbekannt"
+    # Zonen zuweisen und Zone×Stunde aggregieren
+    df = df.copy()
+    df["zone_label"] = assign_zone_labels(df, kmeans, tuple(feat_cols))
+    grp = df.groupby(["zone_label", "hour"]).size().reset_index(name="count")
+    grp["count"] = grp["count"] * scale
 
-    df['zone_name'] = df.apply(assign_zone, axis=1)
-    df = df[df['zone_name'] != "Unbekannt"]
-
-    # Gruppieren
-    grouped = df.groupby(['zone_name', 'hour']).size().reset_index(name='count')
-    pivot = grouped.pivot(index='zone_name', columns='hour', values='count').fillna(0)
+    # Pivot: Zeilen = Zonen, Spalten = Stunden
+    pivot = grp.pivot(index="zone_label", columns="hour", values="count").fillna(0.0)
+    pivot.index = [f"Zone {int(z)}" for z in pivot.index]  # hübschere Labels
 
     fig = px.imshow(
         pivot,
-        color_continuous_scale='YlOrRd',
-        labels=dict(x="Stunde", y="Zone", color="Anzahl Frames"),
-        aspect="auto"
+        labels=dict(x="Stunde", y="Zone", color="Frames (skaliert)"),
+        aspect="auto",
     )
     fig.update_layout(
-        title=f"Zone-Stunde-Nutzung für: {behavior} ({date})",
-        xaxis_nticks=13
+        title=f"Aufenthaltsdauer pro Zone & Stunde – {behavior} ({date})",
+        xaxis_nticks=13,
+        margin=dict(l=40, r=10, t=60, b=40),
     )
     return fig
+
+def _err(msg: str):
+    import plotly.graph_objects as go
+    f = go.Figure()
+    f.update_layout(title=msg, xaxis_visible=False, yaxis_visible=False, margin=dict(l=40,r=10,t=60,b=40))
+    return f

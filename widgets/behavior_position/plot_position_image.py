@@ -1,33 +1,39 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib
-import io
-import base64
+import io, base64
+from widgets.utils import load_behavior_data
 
-from widgets.utils import load_behavior_data, BEHAVIORS
+matplotlib.use("Agg")
 
-matplotlib.use("Agg")  # für Webumgebung
+STALL_X_MIN, STALL_X_MAX = 50, 820
+STALL_Y_MIN, STALL_Y_MAX = 80, 460
 
-# Stallrahmen (optional anpassbar)
-STALL_X_MIN = 50
-STALL_X_MAX = 820
-STALL_Y_MIN = 80
-STALL_Y_MAX = 460
-
-PKL_FOLDER = "data/action_detection/loaded"
-
-def generate_behavior_position_image(folder_path, behavior='feeding', date=None):
+def generate_behavior_position_image(
+    folder_path,
+    behavior='feeding',
+    date=None,
+    sample_fraction: float = 0.10,
+    max_points: int = 10000,
+    random_state: int = 42
+):
     df = load_behavior_data(folder_path)
-
     if df.empty:
         return "Keine Daten geladen."
 
     if date:
         df = df[df['date'] == pd.to_datetime(date).date()]
-    df = df[df['dominant_behavior'] == behavior]
+    if behavior:
+        df = df[df['dominant_behavior'] == behavior]
 
     if df.empty:
         return f"Keine Daten für {behavior} am {date}"
+
+    # 🔹 Sampling für schnelleres Plotten
+    if 0 < sample_fraction < 1.0:
+        n = min(max_points, max(1, int(len(df) * sample_fraction)))
+        if n < len(df):
+            df = df.sample(n=n, random_state=random_state)
 
     fig, ax = plt.subplots(figsize=(8, 6))
     ax.scatter(df['x_center'], df['y_center'], alpha=0.3, s=10)
@@ -44,5 +50,4 @@ def generate_behavior_position_image(folder_path, behavior='feeding', date=None)
     plt.savefig(buf, format="png")
     plt.close(fig)
     buf.seek(0)
-
     return f"data:image/png;base64,{base64.b64encode(buf.read()).decode('utf-8')}"
