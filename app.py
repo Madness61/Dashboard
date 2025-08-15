@@ -20,7 +20,7 @@ from widgets.behavior_flow.callbacks import register_callbacks as register_flow_
 # Dash App initialisieren
 app = dash.Dash(
     __name__,
-    external_stylesheets=[dbc.themes.BOOTSTRAP],
+    external_stylesheets=[dbc.themes.LUX],
     suppress_callback_exceptions=True
 )
 app.title = "Verhaltensanalyse – Schweine"
@@ -46,18 +46,20 @@ TABS = {
 
 
 # App Layout
-app.layout = dbc.Container([
-    html.H2("KI-gestütztes Dashboard zur Verhaltensanalyse in der Schweinehaltung", className="my-4 text-center"),
-
-    dbc.Tabs(
-        id="tabs",
-        active_tab="pig",
-        children=[
-            dbc.Tab(label=config["label"], tab_id=key) for key, config in TABS.items()
-        ]
-    ),
-    html.Div(id="tab-content", className="mt-4")
-], fluid=True)
+app.layout = dbc.Container(
+    [
+        html.H2("KI-gestütztes Dashboard zur Verhaltensanalyse in der Schweinehaltung",
+                className="my-4 text-center"),
+        dbc.Tabs(
+            id="tabs",
+            active_tab="pig",
+            children=[dbc.Tab(label=config["label"], tab_id=key) for key, config in TABS.items()]
+        ),
+        html.Div(id="tab-content", className="mt-4")
+    ],
+    fluid=True,
+    style={"maxWidth": "1280px", "margin": "0 auto"}  # zentriert + lesbare Maximalbreite
+)
 
 # Tab-Inhalte dynamisch laden
 @app.callback(

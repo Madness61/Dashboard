@@ -1,45 +1,83 @@
 from dash import html, dcc
+import dash_bootstrap_components as dbc
 import pandas as pd
+
 from widgets.utils import load_behavior_data
 
 PKL_FOLDER = "data/action_detection/loaded"
 
+
 def layout():
     df = load_behavior_data(PKL_FOLDER)
     if df.empty:
-        return html.P("Keine Daten verfügbar.", style={"color": "red"})
+        return dbc.Alert("Keine Daten verfügbar.", color="danger", className="mb-3")
 
-    dates = sorted(df['date'].unique())
-    first_date = str(dates[0]) if dates else None
+    # Datumswerte als Strings für stabile Dropdown-Values
+    dates = sorted({str(d) for d in df["date"].unique()})
+    first_date = dates[0] if dates else None
 
-    return html.Div([
-        html.H4("Verhaltensabläufe – Process Mining (DFG)"),
+    return html.Div(
+        [
+            html.H4("Verhaltensabläufe – Process Mining (DFG)"),
 
-        html.Div("Datum auswählen:"),
-        dcc.Dropdown(
-            id="flow-date-selector",
-            options=[{"label": str(d), "value": str(d)} for d in dates],
-            value=first_date,
-            clearable=False
-        ),
+            # --- Steuerung: Datum ---
+            dbc.Row(
+                [
+                    dbc.Col(
+                        dcc.Dropdown(
+                            id="flow-date-selector",
+                            options=[{"label": d, "value": d} for d in dates],
+                            value=first_date,
+                            clearable=False,
+                        ),
+                        xs=12, sm=8, md=6, lg=4,
+                        className="mb-3",
+                    ),
+                ]
+            ),
 
-        html.Br(),
+            # --- DFG-Graph ---
+            dbc.Card(
+                dbc.CardBody(
+                    dcc.Graph(id="behavior-flow-graph")
+                ),
+                className="mb-4"
+            ),
 
-        dcc.Graph(id="behavior-flow-graph"),
+            html.Hr(className="my-4"),
 
-        html.Br(),
-
-        html.Div([
+            # --- Analysebericht ---
             html.H5("Analysebericht"),
-            html.Pre(id="behavior-flow-text", style={
-                "whiteSpace": "pre-wrap", "fontFamily": "monospace"
-            })
-        ]),
+            dbc.Card(
+                dbc.CardBody(
+                    html.Pre(
+                        id="behavior-flow-text",
+                        style={
+                            "whiteSpace": "pre-wrap",
+                            "fontFamily": "monospace",
+                            "minHeight": "160px",
+                            "marginBottom": 0
+                        }
+                    )
+                ),
+                className="mb-4"
+            ),
 
-        html.Br(),
-
-        html.Div([
+            # --- Top-Sequenzen ---
             html.H5("Top-Verhaltensequenzen"),
-            html.Pre(id="behavior-top-sequences", style={"whiteSpace": "pre-wrap", "fontFamily": "monospace"})
-        ])
-    ])
+            dbc.Card(
+                dbc.CardBody(
+                    html.Pre(
+                        id="behavior-top-sequences",
+                        style={
+                            "whiteSpace": "pre-wrap",
+                            "fontFamily": "monospace",
+                            "minHeight": "160px",
+                            "marginBottom": 0
+                        }
+                    )
+                ),
+                className="mb-2"
+            ),
+        ]
+    )

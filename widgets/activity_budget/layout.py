@@ -1,44 +1,67 @@
 from dash import html, dcc
+import dash_bootstrap_components as dbc
 import pandas as pd
-import glob
-import os
+
+from widgets.utils import load_behavior_data, BEHAVIORS
 
 PKL_FOLDER = "data/action_detection/loaded"
 
+
 def layout():
-    # PKL-Dateien laden
-    file_list = sorted(glob.glob(os.path.join(PKL_FOLDER, "*.pkl")))
-    if not file_list:
-        return html.P("Keine PKL-Dateien gefunden.", style={"color": "red"})
+    df = load_behavior_data(PKL_FOLDER)
+    if df.empty:
+        return dbc.Alert("Keine Daten verfügbar.", color="danger", className="mb-3")
 
-    dfs = [pd.read_pickle(f) for f in file_list]
-    df = pd.concat(dfs)
-    df['t'] = pd.to_datetime(df['t'])
-    df['date'] = df['t'].dt.date
-    dates = sorted({str(d) for d in df['date'].unique()})
+    # Datumswerte als Strings (stabil für Dropdowns)
+    dates = sorted({str(d) for d in df["date"].unique()})
+    first_date = dates[0] if dates else None
 
-    return html.Div([
-        html.H4("Aktivitätsbudget über den Tag (pro Stunde, pro Verhalten)"),
+    return html.Div(
+        [
+            html.H4("Aktivitätsbudget & Tagesmuster"),
 
-        html.Div("Darstellung wählen:"),
-        dcc.RadioItems(
-            id="budget-mode",
-            options=[
-                {"label": "Einzeltag", "value": "single"},
-                {"label": "Aggregiert über alle Tage", "value": "aggregate"},
-            ],
-            value="single",
-            labelStyle={"display": "inline-block", "marginRight": "1em"}
-        ),
+            # --- Steuerung: Verhalten + Datum ---
+            dbc.Row(
+                [
+                    dbc.Col(
+                        dcc.Dropdown(
+                            id="ab-behavior-selector",
+                            options=[{"label": b, "value": b} for b in BEHAVIORS],
+                            value="feeding",
+                            clearable=False,
+                        ),
+                        xs=12, sm=8, md=6, lg=4,
+                        className="mb-3",
+                    ),
+                    dbc.Col(
+                        dcc.Dropdown(
+                            id="ab-date-selector",
+                            options=[{"label": d, "value": d} for d in dates],
+                            value=first_date,
+                            clearable=False,
+                        ),
+                        xs=12, sm=6, md=4, lg=3,
+                        className="mb-3",
+                    ),
+                ]
+            ),
 
-        html.Div("Datum auswählen (nur bei Einzeltag):"),
-        dcc.Dropdown(
-            id="budget-date-selector",
-            options=[{"label": d, "value": d} for d in dates],
-            value=dates[0],
-            clearable=False
-        ),
+            # --- Heatmap 1: Tagesmuster für ein Verhalten (alle Tage) ---
+            html.H5("Tagesmuster: Ø-Verhaltensintensität über Stunden (alle Tage)"),
+            dbc.Card(
+                dbc.CardBody(
+                    dcc.Graph(id="ab-heatmap-behavior")
+                ),
+                className="mb-4",
+            ),
 
-        html.Br(),
-        html.Div(id="budget-plot-output")
-    ])
+            # --- Heatmap 2: Aktivitätsbudget (ein Tag, alle Verhaltensarten) ---
+            html.H5("Aktivitätsbudget: Anteil je Verhalten und Stunde (ein Tag)"),
+            dbc.Card(
+                dbc.CardBody(
+                    dcc.Graph(id="ab-heatmap-day")
+                ),
+                className="mb-2",
+            ),
+        ]
+    )
