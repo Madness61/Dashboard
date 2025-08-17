@@ -8,12 +8,22 @@ import os
 
 from widgets.utils import BEHAVIORS
 
+# Use a non‑interactive backend since these plots are generated on the
+# server side within the Dash application.
 matplotlib.use("Agg")  # für Dash/Webumgebung
 
 PKL_FOLDER = "data/action_detection/loaded"
 HOURS_RANGE = range(6, 19)  # 6–18 Uhr
 
+
 def load_full_dataframe():
+    """Load and concatenate all pickle files into a single DataFrame.
+
+    The function reads every pickle file in the PKL_FOLDER, ensures the
+    timestamp column ``t`` is parsed as datetime, and computes helper
+    columns such as the dominant behaviour, date and hour.  If no
+    files are present an empty DataFrame is returned.
+    """
     file_list = sorted(glob.glob(os.path.join(PKL_FOLDER, "*.pkl")))
     if not file_list:
         return pd.DataFrame()
@@ -32,7 +42,15 @@ def load_full_dataframe():
     return df
 
 
-def generate_single_day_plot(date_str):
+def generate_single_day_plot(date_str: str):
+    """Create a stacked bar chart with residual line for a single day.
+
+    For the given date the function computes the proportion of each
+    behaviour per hour and draws a stacked bar chart.  The remainder
+    to 100 % (i.e. behaviours that are not explicitly shown) is
+    plotted as a dashed line on a secondary y‑axis.  The label on the
+    secondary axis has been removed at the user's request.
+    """
     df = load_full_dataframe()
     if df.empty:
         return "Keine Daten vorhanden."
@@ -55,11 +73,11 @@ def generate_single_day_plot(date_str):
     behavior_counts = grouped.unstack(fill_value=0)
     percentages = behavior_counts.div(behavior_counts.sum(axis=1), axis=0).fillna(0) * 100
 
-    # Nur relevante Stunden, kein lying
+    # Only show relevant hours and drop the 'lying' category
     empty_index = pd.Index(HOURS_RANGE, name="hour")
     stacked_df = percentages.drop(columns="lying", errors="ignore").reindex(empty_index, fill_value=0)
 
-    # Rest = 100 – Summe sichtbarer Anteile
+    # Compute the residual to 100 %
     sum_visible = stacked_df.sum(axis=1)
     rest_series = 100 - sum_visible
     rest_series = rest_series.clip(lower=0)
@@ -68,7 +86,7 @@ def generate_single_day_plot(date_str):
     fig, ax1 = plt.subplots(figsize=(10, 5))
     stacked_df.plot(kind='bar', stacked=True, ax=ax1, colormap='tab20')
 
-    # Linie für Rest
+    # Residual line on second axis
     ax2 = ax1.twinx()
     ax2.plot(
         range(len(HOURS_RANGE)),
@@ -79,9 +97,10 @@ def generate_single_day_plot(date_str):
         label='Rest zu 100 %'
     )
     ax2.set_ylim(0, 100)
-    ax2.set_ylabel("Nicht dargestellte Anteile (%)")
+    # Remove the right axis label (it used to be "Nicht dargestellte Anteile (%)")
+    ax2.set_ylabel("")
 
-    # Achsen
+    # Axes configuration
     ax1.set_ylim(0, 100)
     ax1.set_ylabel("Anteil an Frames (%)")
     ax1.set_xlabel("Stunde")
@@ -89,12 +108,12 @@ def generate_single_day_plot(date_str):
     ax1.set_xticks(range(len(HOURS_RANGE)))
     ax1.set_xticklabels([f"{h}:00" for h in HOURS_RANGE])
 
-    # Legende
+    # Combine legends
     h1, l1 = ax1.get_legend_handles_labels()
     h2, l2 = ax2.get_legend_handles_labels()
     ax1.legend(h1 + h2, l1 + l2, title="Verhalten", bbox_to_anchor=(1.05, 1), loc='upper left')
 
-    # Speichern
+    # Save to PNG in memory
     plt.tight_layout()
     buf = io.BytesIO()
     plt.savefig(buf, format="png")
@@ -103,8 +122,14 @@ def generate_single_day_plot(date_str):
     return f"data:image/png;base64,{base64.b64encode(buf.read()).decode('utf-8')}"
 
 
-
 def generate_aggregated_plot():
+    """Create a stacked bar chart showing average behaviour distribution.
+
+    The function computes mean proportions per hour across all days and
+    plots a stacked bar chart with a residual line on a secondary
+    y‑axis.  The secondary axis label has been removed in line with
+    the single day plot.
+    """
     df = load_full_dataframe()
     if df.empty:
         return "Keine Daten vorhanden."
@@ -123,20 +148,20 @@ def generate_aggregated_plot():
     percentages = counts.div(counts.sum(axis=1), axis=0).fillna(0) * 100
     mean_per_hour = percentages.groupby('hour').mean().reindex(HOURS_RANGE, fill_value=0)
 
-    # Nur sichtbare Verhaltensklassen (kein lying)
+    # Drop the 'lying' category
     stacked_df = mean_per_hour.drop(columns='lying', errors='ignore')
 
-    # Berechne Rest als fehlenden Anteil auf 100 %
+    # Compute residual to 100 %
     sum_visible = stacked_df.sum(axis=1)
     rest_series = 100 - sum_visible
     rest_series = rest_series.clip(lower=0)
 
     fig, ax1 = plt.subplots(figsize=(10, 5))
 
-    # Gestapelte Balken
+    # Stacked bars
     stacked_df.plot(kind='bar', stacked=True, ax=ax1, colormap='tab20')
 
-    # Linie für Rest (zweite Achse)
+    # Residual line on second axis
     ax2 = ax1.twinx()
     ax2.plot(
         range(len(HOURS_RANGE)),
@@ -147,9 +172,10 @@ def generate_aggregated_plot():
         label='Rest zu 100 %'
     )
     ax2.set_ylim(0, 100)
-    ax2.set_ylabel("Nicht dargestellte Anteile (%)")
+    # Remove the right axis label
+    ax2.set_ylabel("")
 
-    # Achsentitel etc.
+    # Axis titles
     ax1.set_ylim(0, 100)
     ax1.set_ylabel("Durchschnittlicher Anteil an Frames (%)")
     ax1.set_xlabel("Stunde")
@@ -157,12 +183,12 @@ def generate_aggregated_plot():
     ax1.set_xticks(range(len(HOURS_RANGE)))
     ax1.set_xticklabels([f"{h}:00" for h in HOURS_RANGE])
 
-    # Legende kombinieren
+    # Combine legends
     h1, l1 = ax1.get_legend_handles_labels()
     h2, l2 = ax2.get_legend_handles_labels()
     ax1.legend(h1 + h2, l1 + l2, title="Verhalten", bbox_to_anchor=(1.05, 1), loc='upper left')
 
-    # Speichern als PNG im Speicher
+    # Save image
     plt.tight_layout()
     buf = io.BytesIO()
     plt.savefig(buf, format="png")
