@@ -1,18 +1,26 @@
-from dash import Input, Output, State, html
-from widgets.activity_budget.plot_budget import generate_single_day_plot, generate_aggregated_plot
+# widgets/activity_budget/callbacks.py
+import dash
+from dash import Input, Output, callback
+from .plot_budget import generate_aggregated_plot, generate_single_day_plot
+
+DETAIL_PATH = "/budget"
 
 def register_callbacks(app):
-    @app.callback(
-        Output("budget-plot-output", "children"),
-        Input("budget-mode", "value"),
-        Input("budget-date-selector", "value")
-    )
-    def update_budget_plot(mode, date):
-        if mode == "single":
-            image_src = generate_single_day_plot(date)
-        else:
-            image_src = generate_aggregated_plot()
 
-        if isinstance(image_src, str) and image_src.startswith("data:image"):
-            return html.Img(src=image_src, style={"maxWidth": "100%"})
-        return html.P(image_src, style={"color": "red"})
+    @callback(
+        Output("budget-agg", "figure"),
+        Output("budget-stacked", "figure"),
+        Input("url", "pathname"),                 # <-- Navigation triggert Render
+        Input("budget-behavior", "value"),
+        Input("budget-date", "date"),
+        prevent_initial_call=False                # <-- initial feuern erlauben
+    )
+    def update_budget(pathname, behavior, date):
+        if pathname != DETAIL_PATH:
+            raise dash.exceptions.PreventUpdate   # fremde Seiten ignorieren
+        if not behavior or not date:
+            raise dash.exceptions.PreventUpdate
+
+        fig_agg = generate_aggregated_plot(behavior=behavior)
+        fig_stack = generate_single_day_plot(behavior=behavior, date=date)
+        return fig_agg, fig_stack

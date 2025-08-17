@@ -27,7 +27,7 @@ def layout():
                         dcc.Dropdown(
                             id="ab-behavior-selector",
                             options=[{"label": b, "value": b} for b in BEHAVIORS],
-                            value="feeding",
+                            value=BEHAVIORS[0],
                             clearable=False,
                         ),
                         xs=12, sm=8, md=6, lg=4,
