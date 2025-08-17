@@ -103,7 +103,7 @@ def generate_zone_overview_image(
     ax.set_ylim(STALL_Y_MAX + 20, STALL_Y_MIN - 20)  # invert y
     ax.set_xlabel("x (Pixel)")
     ax.set_ylabel("y (Pixel)")
-    ax.set_title(f"Stallübersicht – automatisch gelernte Zonen ({date})")
+    ax.set_title(f"Stallübersicht –  Zone für ({date})")
 
     _load_bg_image(ax)
 

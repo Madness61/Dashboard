@@ -34,7 +34,7 @@ def layout():
     return html.Div(
         [
             # ---------------- Section 1: Balkendiagramm ----------------
-            html.H4("Verhaltensanalyse pro Tag (Balkendiagramm)"),
+            html.H4("Verhaltensanalyse pro Tag"),
             dbc.Row(
                 [
                     dbc.Col(
@@ -58,7 +58,7 @@ def layout():
             html.Hr(className="my-4"),
 
             # ---------------- Section 2: Polarplots ----------------
-            html.H4("Verhaltensverteilung nach Uhrzeit – aggregiert vs. pro Tag"),
+            html.H4("Verhaltensverteilung nach Uhrzeit"),
             dbc.Row(
                 [
                     dbc.Col(

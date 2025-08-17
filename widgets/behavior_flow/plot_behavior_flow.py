@@ -82,7 +82,7 @@ def generate_behavior_dfg(folder_path, date=None):
             yaxis=dict(showgrid=False, zeroline=False)
         ))
 
-    # 📊 Analysebericht generieren
+    # Analysebericht generieren
     top_transition = dfg_counts.sort_values('count', ascending=False).iloc[0]
     most_common_path = f"• Häufigste Sequenz: {top_transition['dominant_behavior']} → {top_transition['next_behavior']} ({top_transition['count']}x)"
 
@@ -92,7 +92,7 @@ def generate_behavior_dfg(folder_path, date=None):
     active_node = max(out_deg_all, key=out_deg_all.get)
 
     report_lines = [
-        f"🔍 Verhaltenstransitions am {date}:",
+        f"Verhaltenstransitions am {date}:",
         most_common_path,
         f"• Zentrales Verhalten (meiste eingehende Übergänge): {central_node} ({in_deg_all[central_node]}x)",
         f"• Aktivstes Startverhalten (ausgehend): {active_node} ({out_deg_all[active_node]}x)"

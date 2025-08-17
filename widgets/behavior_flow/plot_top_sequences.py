@@ -21,7 +21,7 @@ def get_top_behavior_sequences(folder_path, date=None, n=3, top_k=5):
     # Sortiere nach Häufigkeit
     most_common = sequence_counts.most_common(top_k)
 
-    lines = [f"🔁 Top-{top_k} {n}-er Verhaltensequenzen am {date}:\n"]
+    lines = [f"Top-{top_k} {n}-er Verhaltensequenzen am {date}:\n"]
     for i, (seq, count) in enumerate(most_common, 1):
         lines.append(f"{i}. {' → '.join(seq)} ({count}x)")
 

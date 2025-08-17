@@ -18,7 +18,7 @@ def layout():
 
     return html.Div(
         [
-            html.H4("Verhaltensabläufe – Process Mining (DFG)"),
+            html.H4("Verhaltensabläufe – Process Mining"),
 
             # --- Steuerung: Datum ---
             dbc.Row(
