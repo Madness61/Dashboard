@@ -54,7 +54,7 @@ def generate_single_day_plot(date_str: str):
     ax2.plot(range(len(HOURS_RANGE)), rest.values, color="black", linewidth=2, linestyle="--", label="Rest zu 100 %")
     ax2.set_ylim(0,100); ax2.set_ylabel("")                  # rechte Achse: Label entfernen
     ax1.set_ylim(0,100); ax1.set_ylabel("Anteil an Frames (%)")
-    ax1.set_xlabel("Stunde"); ax1.set_title(f"Aktivitätsbudget am {date_str} (Rest als Linie)")
+    ax1.set_xlabel("Stunde"); ax1.set_title(f"Aktivitätsbudget am {date_str}")
     ax1.set_xticks(range(len(HOURS_RANGE))); ax1.set_xticklabels([f"{h}:00" for h in HOURS_RANGE])
     h1,l1=ax1.get_legend_handles_labels(); h2,l2=ax2.get_legend_handles_labels()
     ax1.legend(h1+h2, l1+l2, title="Verhalten", bbox_to_anchor=(1.05,1), loc="upper left")
@@ -77,7 +77,7 @@ def generate_aggregated_plot():
     ax2.plot(range(len(HOURS_RANGE)), rest.values, color="black", linestyle="--", linewidth=2, label="Rest zu 100 %")
     ax2.set_ylim(0,100); ax2.set_ylabel("")                  # rechte Achse: Label entfernen
     ax1.set_ylim(0,100); ax1.set_ylabel("Durchschnittlicher Anteil an Frames (%)")
-    ax1.set_xlabel("Stunde"); ax1.set_title("Aggregiertes Aktivitätsbudget über alle Tage (Rest als Linie)")
+    ax1.set_xlabel("Stunde"); ax1.set_title("Aggregiertes Aktivitätsbudget über alle Tage")
     ax1.set_xticks(range(len(HOURS_RANGE))); ax1.set_xticklabels([f"{h}:00" for h in HOURS_RANGE])
     h1,l1=ax1.get_legend_handles_labels(); h2,l2=ax2.get_legend_handles_labels()
     ax1.legend(h1+h2, l1+l2, title="Verhalten", bbox_to_anchor=(1.05,1), loc="upper left")
@@ -112,7 +112,7 @@ def generate_single_day_figure(date_str: str):
     pct = counts.div(counts.sum(axis=1), axis=0).fillna(0)*100
     stacked = pct.drop(columns="lying", errors="ignore").reindex(pd.Index(HOURS_RANGE, name="hour"), fill_value=0)
     rest = (100 - stacked.sum(axis=1)).clip(lower=0)
-    return _barline(stacked, rest, f"Aktivitätsbudget am {date_str} (Rest als Linie)", "Anteil an Frames (%)")
+    return _barline(stacked, rest, f"Aktivitätsbudget am {date_str}", "Anteil an Frames (%)")
 
 def generate_aggregated_figure():
     df = load_full_dataframe()
@@ -124,7 +124,7 @@ def generate_aggregated_figure():
     mean_h = pct.groupby("hour").mean().reindex(HOURS_RANGE, fill_value=0)
     stacked = mean_h.drop(columns="lying", errors="ignore")
     rest = (100 - stacked.sum(axis=1)).clip(lower=0)
-    return _barline(stacked, rest, "Aggregiertes Aktivitätsbudget über alle Tage (Rest als Linie)",
+    return _barline(stacked, rest, "Aggregiertes Aktivitätsbudget über alle Tage",
                     "Durchschnittlicher Anteil an Frames (%)")
 
 # ---------------- Heatmap (wie auf Verhalten, aber hier im Aktivitätsbudget) ----------------
