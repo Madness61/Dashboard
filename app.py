@@ -47,10 +47,10 @@ app = dash.Dash(
 
 # Seiten-Registry
 TABS = {
-    "pig":       {"label": "Verhalten (Tag + Stunde)", "layout": pig_layout,       "path": "/pig"},
-    "position":  {"label": "Verhaltenspositionen",      "layout": position_layout, "path": "/position"},
-    "budget":    {"label": "Aktivitätsbudget",          "layout": budget_layout,   "path": "/budget"},
-    "flow":      {"label": "Prozesspfade",              "layout": flow_layout,     "path": "/flow"},
+    "pig":       {"label": "Verhalten",                  "layout": pig_layout,       "path": "/pig"},
+    "position":  {"label": "Bewegung & Aufenthalt",      "layout": position_layout, "path": "/position"},
+    "budget":    {"label": "Aktivität",                  "layout": budget_layout,   "path": "/budget"},
+    "flow":      {"label": "Prozess",                    "layout": flow_layout,     "path": "/flow"},
 }
 
 

@@ -18,7 +18,9 @@ def generate_behavior_dfg(folder_path, date=None):
     transitions = df[df['dominant_behavior'] != df['next_behavior']]
 
     # Übergänge zählen
-    dfg_counts = transitions.groupby(['dominant_behavior', 'next_behavior']).size().reset_index(name='count')
+    dfg_counts = transitions.groupby(
+        ['dominant_behavior', 'next_behavior']
+    ).size().reset_index(name='count')
 
     # Graph erzeugen
     G = nx.DiGraph()
@@ -29,8 +31,7 @@ def generate_behavior_dfg(folder_path, date=None):
     pos = nx.spring_layout(G, k=0.7, seed=42)
 
     # Kanten zeichnen
-    edge_x = []
-    edge_y = []
+    edge_x, edge_y = [], []
     for src, tgt in G.edges():
         x0, y0 = pos[src]
         x1, y1 = pos[tgt]
@@ -38,8 +39,7 @@ def generate_behavior_dfg(folder_path, date=None):
         edge_y += [y0, y1, None]
 
     edge_trace = go.Scatter(
-        x=edge_x,
-        y=edge_y,
+        x=edge_x, y=edge_y,
         line=dict(width=1, color="#888"),
         hoverinfo='none',
         mode='lines'
@@ -56,8 +56,7 @@ def generate_behavior_dfg(folder_path, date=None):
         node_text.append(f"{node}\nIn: {in_deg}, Out: {out_deg}")
 
     node_trace = go.Scatter(
-        x=node_x,
-        y=node_y,
+        x=node_x, y=node_y,
         mode='markers+text',
         text=[n for n in G.nodes()],
         textposition="bottom center",
@@ -71,20 +70,44 @@ def generate_behavior_dfg(folder_path, date=None):
         )
     )
 
-    fig = go.Figure(data=[edge_trace, node_trace],
+    fig = go.Figure(
+        data=[edge_trace, node_trace],
         layout=go.Layout(
             title="Directly-Follows-Graph (Verhaltenspfade)",
             titlefont_size=16,
             showlegend=False,
             hovermode='closest',
             margin=dict(b=20, l=5, r=5, t=40),
-            xaxis=dict(showgrid=False, zeroline=False),
-            yaxis=dict(showgrid=False, zeroline=False)
-        ))
+            # Änderung 3: Achsen vollständig ausblenden
+            xaxis=dict(visible=False),
+            yaxis=dict(visible=False)
+        )
+    )
+
+    # Änderung 2: Pfeile nur in dominante Richtung pro Knotenpaar
+    edges_sorted = sorted(G.edges(data=True), key=lambda e: e[2]['weight'], reverse=True)
+    dominant = {}
+    for u, v, data in edges_sorted:
+        key = tuple(sorted((u, v)))
+        if key not in dominant:
+            dominant[key] = (u, v, data)  # erster ist stärkster wegen Sortierung
+
+    for u, v, data in dominant.values():
+        x0, y0 = pos[u]
+        x1, y1 = pos[v]
+        fig.add_annotation(
+            x=x1, y=y1, ax=x0, ay=y0,
+            xref="x", yref="y", axref="x", ayref="y",
+            showarrow=True, arrowhead=3, arrowsize=1.2, arrowwidth=1,
+            arrowcolor="#888", opacity=0.85, standoff=8
+        )
 
     # Analysebericht generieren
     top_transition = dfg_counts.sort_values('count', ascending=False).iloc[0]
-    most_common_path = f"• Häufigste Sequenz: {top_transition['dominant_behavior']} → {top_transition['next_behavior']} ({top_transition['count']}x)"
+    most_common_path = (
+        f"• Häufigste Sequenz: {top_transition['dominant_behavior']} → "
+        f"{top_transition['next_behavior']} ({top_transition['count']}x)"
+    )
 
     in_deg_all = dict(G.in_degree(weight='weight'))
     out_deg_all = dict(G.out_degree(weight='weight'))
