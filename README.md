@@ -29,6 +29,7 @@ Ein interaktives Dashboard zur Visualisierung von **Aktivitätsbudgets**, **Verh
 ├── data/
 │   └── action_detection/
 │       └── loaded/              # hier liegen die .pkl-Dateien (Eingabedaten)
+│   └── … 
 ├── widgets/
 │   ├── utils.py                 # Datenladefunktionen, BEHAVIORS-Liste
 │   ├── pig_behavior/            # Modul für Verhaltensanalyse
