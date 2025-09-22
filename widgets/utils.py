@@ -6,6 +6,7 @@ import os
 BEHAVIORS = ['lying', 'sitting', 'standing', 'moving',
              'investigating', 'feeding', 'defecating', 'playing']
 
+# Lädt alle *.pkl aus folder_path, vereinheitlicht Zeitspalten, berechnet Hilfsspalten und optional schließt Verhaltensklassen aus.
 def load_behavior_data(folder_path, exclude=None):
     file_list = sorted(glob.glob(os.path.join(folder_path, "*.pkl")))
     if not file_list:
@@ -44,7 +45,7 @@ def load_behavior_data(folder_path, exclude=None):
 
     return df
 
-
+# Liest ein XES-Eventlog und gibt die vorhandenen Verhalten (concept:name) sortiert zurück, optional mit Ausschluss.
 def get_available_behaviors(xes_path, exclude=None):
     from pm4py.objects.log.importer.xes import importer as xes_importer
     import pm4py

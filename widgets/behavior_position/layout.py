@@ -3,6 +3,10 @@ from dash import dcc, html
 
 from widgets.utils import BEHAVIORS
 
+# Baut die Positions-/Zonen-Ansicht:
+# 1) Positionspunkte als Bild
+# 2) Aufenthaltsdauer je Zone + Stallübersicht
+# 3) Matrix-Heatmap Zone×Stunde ohne Slider
 def layout():
     return html.Div(
         [

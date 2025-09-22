@@ -8,7 +8,7 @@ from sklearn.cluster import DBSCAN
 
 from widgets.utils import BEHAVIORS
 
-# Verhalten → Farbe
+# Verhalten → Farbe für Plot-Legende und Punktfarben.
 BEHAVIOR_COLORS = {
     "lying": "#1f77b4",
     "feeding": "#ff7f0e",
@@ -20,6 +20,7 @@ BEHAVIOR_COLORS = {
     "playing": "#7f7f7f"
 }
 
+# Erzeugt eine DBSCAN-basierte Zonenkarte für einen Tag; optionales Verhaltensfilter; Rückgabe Base64-PNG oder Fehlertext.
 def generate_zone_map_image_for_date(df, date_str, behavior_filter=None, eps=40, min_samples=100):
     print(f"\n📅 Clustering-Zonenkarte für {date_str}")
     target_date = pd.to_datetime(date_str).date()

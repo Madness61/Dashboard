@@ -11,9 +11,11 @@ STALL_Y_MIN, STALL_Y_MAX = 80, 460
 
 ASSETS_BG = "assets/stall_topview.png"  # optionales Top-View-Bild
 
+# Prüft, ob ein Hintergrundbild vorhanden ist.
 def _has_bg():
     return os.path.exists(ASSETS_BG)
 
+# Erzeugt eine räumliche Zone×Dichte-Heatmap pro Stunde für ein Verhalten; optionales Sampling und Glättung.
 def generate_spatial_hour_heatmap(
     folder_path: str,
     behavior: str,
@@ -62,13 +64,13 @@ def generate_spatial_hour_heatmap(
     )
     H = H.T * scale  # Heatmap erwartet z[y, x], y invertieren wir per Achse
 
-    # optional glätten
+    # Glätten optional
     if smoothing_sigma and smoothing_sigma > 0:
         try:
             from scipy.ndimage import gaussian_filter
             H = gaussian_filter(H, sigma=float(smoothing_sigma))
         except Exception:
-            pass  # SciPy nicht zwingend
+            pass  # SciPy optional
 
     # Zellmittelpunkte
     xmid = (xedges[:-1] + xedges[1:]) / 2
@@ -108,6 +110,7 @@ def generate_spatial_hour_heatmap(
     )
     return fig
 
+# Liefert eine leere Figure mit Titel als Hinweis.
 def _empty_fig(msg: str):
     import plotly.graph_objects as go
     f = go.Figure()

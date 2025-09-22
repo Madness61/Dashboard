@@ -3,6 +3,7 @@ from collections import Counter
 
 from widgets.utils import load_behavior_data
 
+# Liefert die häufigsten n-Gramm-Sequenzen dominanter Verhaltensklassen; optional auf ein Datum gefiltert.
 def get_top_behavior_sequences(folder_path, date=None, n=3, top_k=5):
     df = load_behavior_data(folder_path)
     
@@ -14,7 +15,7 @@ def get_top_behavior_sequences(folder_path, date=None, n=3, top_k=5):
     # Nur relevante Spalte
     behaviors = df['dominant_behavior'].tolist()
 
-    # Erzeuge n-gramme: z. B. ("feeding", "lying", "feeding")
+    # Erzeuge n-gramme: z. B. ("feeding", "lying", "feeding")
     sequences = zip(*[behaviors[i:] for i in range(n)])
     sequence_counts = Counter(sequences)
 

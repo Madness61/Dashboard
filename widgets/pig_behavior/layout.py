@@ -12,6 +12,9 @@ PKL_FOLDER = "data/action_detection/loaded"
 EXCLUDED_BEHAVIORS = ["start", "end", "other", "lying_start", "lying_end"]
 
 
+# Baut das Seitenlayout für das Modul "pig_behavior":
+# lädt verfügbare Verhalten + Schwellen, extrahiert Stunden/Datum aus PKL
+# und rendert vier Sektionen (Balkenplot, Polarplots, Tagesmuster-Heatmap, Budget-Heatmap).
 def layout():
     # Verfügbare Verhalten und Schwellenwerte laden
     behaviors = get_available_behaviors(DEFAULT_XES_PATH, EXCLUDED_BEHAVIORS)

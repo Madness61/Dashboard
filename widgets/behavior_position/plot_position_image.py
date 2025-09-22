@@ -6,9 +6,11 @@ from widgets.utils import load_behavior_data
 
 matplotlib.use("Agg")
 
+# Stallkoordinatenrahmen für Achsenlimits.
 STALL_X_MIN, STALL_X_MAX = 50, 820
 STALL_Y_MIN, STALL_Y_MAX = 80, 460
 
+# Erzeugt ein Streudiagramm der Positionspunkte für ein Verhalten an einem Datum; Rückgabe als Base64-PNG oder Fehlertext.
 def generate_behavior_position_image(
     folder_path,
     behavior='feeding',
@@ -29,7 +31,7 @@ def generate_behavior_position_image(
     if df.empty:
         return f"Keine Daten für {behavior} am {date}"
 
-    # 🔹 Sampling für schnelleres Plotten
+    # Sampling für schnelleres Plotten.
     if 0 < sample_fraction < 1.0:
         n = min(max_points, max(1, int(len(df) * sample_fraction)))
         if n < len(df):

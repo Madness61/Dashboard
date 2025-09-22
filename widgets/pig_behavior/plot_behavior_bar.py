@@ -5,6 +5,7 @@ import matplotlib
 
 matplotlib.use("Agg")
 
+# Erzeugt ein Balkendiagramm: Minuten pro Tag für ein Verhalten aus XES, farbcodiert per Schwellen; Rückgabe als Base64-PNG.
 def generate_behavior_bar_plot(xes_path, behavior, thresholds):
     from pm4py.objects.log.importer.xes import importer as xes_importer
     import pm4py

@@ -3,34 +3,39 @@ import plotly.graph_objects as go
 import networkx as nx
 from widgets.utils import load_behavior_data
 
+# Standard-Datenordner für PKL-Dateien.
 PKL_FOLDER = "data/action_detection/loaded"
 
+# Erzeugt einen Directly-Follows-Graph (DFG) der dominanten Verhaltensübergänge; optional auf ein Datum gefiltert.
+# Rückgabe: (Plotly-Figure, Textbericht) oder ("Keine Daten...", "").
 def generate_behavior_dfg(folder_path, date=None):
     df = load_behavior_data(folder_path)
 
+    # Optional auf Datum filtern.
     if date:
         df = df[df['date'] == pd.to_datetime(date).date()]
     if df.empty:
         return "Keine Daten geladen.", ""
 
+    # Zeitlich sortieren und nächste Verhaltensklasse bestimmen.
     df = df.sort_values("t")
     df['next_behavior'] = df['dominant_behavior'].shift(-1)
     transitions = df[df['dominant_behavior'] != df['next_behavior']]
 
-    # Übergänge zählen
+    # Übergänge zählen.
     dfg_counts = transitions.groupby(
         ['dominant_behavior', 'next_behavior']
     ).size().reset_index(name='count')
 
-    # Graph erzeugen
+    # Gerichteten Graphen aufbauen.
     G = nx.DiGraph()
     for _, row in dfg_counts.iterrows():
         G.add_edge(row['dominant_behavior'], row['next_behavior'], weight=row['count'])
 
-    # Positionierung
+    # Layout berechnen.
     pos = nx.spring_layout(G, k=0.7, seed=42)
 
-    # Kanten zeichnen
+    # Kantenlinien vorbereiten.
     edge_x, edge_y = [], []
     for src, tgt in G.edges():
         x0, y0 = pos[src]
@@ -45,7 +50,7 @@ def generate_behavior_dfg(folder_path, date=None):
         mode='lines'
     )
 
-    # Knoten zeichnen
+    # Knotenpunkte und Tooltips vorbereiten.
     node_x, node_y, node_text = [], [], []
     for node in G.nodes():
         x, y = pos[node]
@@ -70,6 +75,7 @@ def generate_behavior_dfg(folder_path, date=None):
         )
     )
 
+    # Grundfigur ohne Pfeile.
     fig = go.Figure(
         data=[edge_trace, node_trace],
         layout=go.Layout(
@@ -78,13 +84,12 @@ def generate_behavior_dfg(folder_path, date=None):
             showlegend=False,
             hovermode='closest',
             margin=dict(b=20, l=5, r=5, t=40),
-            # Änderung 3: Achsen vollständig ausblenden
             xaxis=dict(visible=False),
             yaxis=dict(visible=False)
         )
     )
 
-    # Änderung 2: Pfeile nur in dominante Richtung pro Knotenpaar
+    # Pfeile nur für dominante Richtung je Knotenpaar.
     edges_sorted = sorted(G.edges(data=True), key=lambda e: e[2]['weight'], reverse=True)
     dominant = {}
     for u, v, data in edges_sorted:
@@ -102,7 +107,7 @@ def generate_behavior_dfg(folder_path, date=None):
             arrowcolor="#888", opacity=0.85, standoff=8
         )
 
-    # Analysebericht generieren
+    # Kurzbericht aus den Kantenstatistiken.
     top_transition = dfg_counts.sort_values('count', ascending=False).iloc[0]
     most_common_path = (
         f"• Häufigste Sequenz: {top_transition['dominant_behavior']} → "
@@ -121,7 +126,7 @@ def generate_behavior_dfg(folder_path, date=None):
         f"• Aktivstes Startverhalten (ausgehend): {active_node} ({out_deg_all[active_node]}x)"
     ]
 
-    # Seltene oder isolierte Verhalten
+    # Seltene oder isolierte Knoten nennen.
     low_degree = [n for n in G.nodes() if in_deg_all[n] + out_deg_all[n] <= 2]
     if low_degree:
         report_lines.append(f"• Seltene oder isolierte Verhalten: {', '.join(low_degree)}")

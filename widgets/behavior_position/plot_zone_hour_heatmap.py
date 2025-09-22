@@ -1,3 +1,5 @@
+# Erstellt eine Zone×Stunde-Heatmap für ein Verhalten an einem Datum; Zonenmodell ist tagesstabil (KMeans pro Tag).
+
 import pandas as pd
 import plotly.express as px
 
@@ -7,6 +9,7 @@ from widgets.behavior_position.zone_learning import (
     assign_zone_labels,
 )
 
+# Baut die Zone×Stunde-Heatmap für ein Verhalten; optionales Sampling für Zählung.
 def generate_zone_hour_heatmap(
     folder_path: str,
     behavior: str,
@@ -29,7 +32,7 @@ def generate_zone_hour_heatmap(
     if df_day.empty:
         return _err(f"Keine Daten am {date}")
 
-    # 🔒 Zonenmodell PRO TAG (ohne Verhaltensfilter) -> Zonen bleiben bei Verhaltenswechsel konstant
+    # Zonenmodell PRO TAG (ohne Verhaltensfilter) -> Zonen bleiben bei Verhaltenswechsel konstant.
     kmeans, feat_cols = get_or_fit_kmeans_for_date(
         folder_path=folder_path,
         date=date,
@@ -41,12 +44,12 @@ def generate_zone_hour_heatmap(
     if kmeans is None:
         return _err("Zonenlernen fehlgeschlagen.")
 
-    # Für die Heatmap nach Verhalten filtern (Zonen bleiben gleich)
+    # Heatmap auf gewünschtes Verhalten filtern (Zonen unverändert).
     df = df_day[df_day["dominant_behavior"] == behavior]
     if df.empty:
         return _err(f"Keine Daten für {behavior} am {date}")
 
-    # Optionales Sampling fürs Zählen + Hochrechnung
+    # Optionales Sampling fürs Zählen + Hochrechnung.
     scale = 1.0
     if predict_sample_fraction and 0 < predict_sample_fraction < 1.0:
         n = max(1, int(len(df) * predict_sample_fraction))
@@ -54,15 +57,15 @@ def generate_zone_hour_heatmap(
             df = df.sample(n=n, random_state=random_state)
             scale = len(df) / n
 
-    # Zonen zuweisen und Zone×Stunde aggregieren
+    # Zonen zuweisen und Zone×Stunde aggregieren.
     df = df.copy()
     df["zone_label"] = assign_zone_labels(df, kmeans, tuple(feat_cols))
     grp = df.groupby(["zone_label", "hour"]).size().reset_index(name="count")
     grp["count"] = grp["count"] * scale
 
-    # Pivot: Zeilen = Zonen, Spalten = Stunden
+    # Pivot: Zeilen = Zonen, Spalten = Stunden.
     pivot = grp.pivot(index="zone_label", columns="hour", values="count").fillna(0.0)
-    pivot.index = [f"Zone {int(z)}" for z in pivot.index]  # hübschere Labels
+    pivot.index = [f"Zone {int(z)}" for z in pivot.index]
 
     fig = px.imshow(
         pivot,
@@ -76,6 +79,7 @@ def generate_zone_hour_heatmap(
     )
     return fig
 
+# Liefert eine leere Figure mit Titel als Fehlermeldung.
 def _err(msg: str):
     import plotly.graph_objects as go
     f = go.Figure()

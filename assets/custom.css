@@ -1,34 +1,39 @@
+/* Basis-Typografie und Hintergrund */
 body {
     font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
     background-color: #f8f9fa;
 }
+
+/* Überschriften */
 h2 { color: #34495e; margin-top: 20px; }
 h4, h5 { color: #2c3e50; margin-bottom: 12px; }
 
-/* aktive Tab-Farbe */
+/* Tabs: aktive Registerkarte */
 .nav-tabs .nav-link.active {
     background-color: #007bff !important;
     color: #fff !important;
     border-color: #007bff #007bff #fff !important;
 }
+/* Tabs: inaktive Links */
 .nav-tabs .nav-link {
     color: #007bff;
 }
 
-/* Dropdowns verbessern */
+/* Dropdowns: Eingabe (Dash Select) */
 .Select-control {
     background-color: #fff;
     border-color: #ced4da;
     border-radius: 0.25rem;
     padding: 0.25rem 0.5rem;
 }
+/* Dropdowns: Menü */
 .Select-menu-outer {
     background-color: #fff;
     border-color: #ced4da;
     border-radius: 0.25rem;
 }
 
-/* Karten für Graphen mit Rand und Schatten */
+/* Kartencontainer für Graphen */
 .dbc-card {
     background-color: #fff;
     border: 1px solid #e5e7eb;

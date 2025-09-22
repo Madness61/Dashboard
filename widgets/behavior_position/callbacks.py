@@ -7,9 +7,10 @@ from widgets.behavior_position.plot_zone_duration import generate_zone_duration_
 from widgets.behavior_position.plot_zone_overview import generate_zone_overview_image
 from widgets.behavior_position.plot_zone_hour_heatmap import generate_zone_hour_heatmap  # ⬅️ wieder Matrix
 
+# Konstanten: Datenordner.
 PKL_FOLDER = "data/action_detection/loaded"
 
-
+# Liefert verfügbare Datumswerte, optional nach Verhalten gefiltert.
 def _available_dates(folder_path: str, behavior: str | None) -> list[str]:
     df = load_behavior_data(folder_path)
     if behavior:
@@ -18,9 +19,9 @@ def _available_dates(folder_path: str, behavior: str | None) -> list[str]:
         return []
     return sorted({d.strftime("%Y-%m-%d") for d in df["date"]})
 
-
+# Registriert die Callbacks des Moduls behavior_position.
 def register_callbacks(app):
-    # --- Position / Aufenthaltsdauer / Stallübersicht ---
+    # Aktualisiert Positionen, Zonen-Dauer und Stallübersicht.
     @app.callback(
         Output("position-image-output", "children"),
         Output("zone-image-output", "children"),
@@ -64,7 +65,7 @@ def register_callbacks(app):
 
         return scatter_element, zone_element, overview_element
 
-    # --- Dropdown für Position-Datum dynamisch füllen ---
+    # Füllt das Datum-Dropdown für Position dynamisch.
     @app.callback(
         Output("position-date-selector", "options"),
         Output("position-date-selector", "value"),
@@ -75,7 +76,7 @@ def register_callbacks(app):
         value = dates[-1] if dates else None
         return [{"label": d, "value": d} for d in dates], value
 
-    # --- Dropdown für Matrix-Heatmap-Datum dynamisch füllen ---
+    # Füllt das Datum-Dropdown für die Zone×Stunde-Heatmap dynamisch.
     @app.callback(
         Output("zone-hour-date-selector", "options"),
         Output("zone-hour-date-selector", "value"),
@@ -86,7 +87,7 @@ def register_callbacks(app):
         value = dates[-1] if dates else None
         return [{"label": d, "value": d} for d in dates], value
 
-    # --- Matrix-Heatmap: Zone × Stunde ---
+    # Aktualisiert die Zone×Stunde-Heatmap.
     @app.callback(
         Output("zone-hour-heatmap", "figure"),
         Input("zone-hour-behavior-selector", "value"),

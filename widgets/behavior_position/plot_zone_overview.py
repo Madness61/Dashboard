@@ -11,17 +11,14 @@ from widgets.behavior_position.zone_learning import learn_zones_kmeans
 
 matplotlib.use("Agg")
 
-# Optionales Hintergrundbild (Top‑View des Stalls).
-# Lege z.B. ein Foto oder Schema als PNG hier ab:
-#   assets/stall_topview.png
+# Optionales Hintergrundbild (Top-View des Stalls).
 ASSETS_BG = "assets/stall_topview.png"
 
-# Stallrahmen für Achsen (wie in deinen Plots)
+# Stallrahmen für Achsen.
 STALL_X_MIN, STALL_X_MAX = 50, 820
 STALL_Y_MIN, STALL_Y_MAX = 80, 460
 
-# Heuristik: Clusterzentren -> semantische Zonenbezeichnung
-# (anpassbar an deine Stallgeometrie)
+# Leitet aus einem Zentroiden eine semantische Zonenbezeichnung ab.
 def name_from_centroid(cx, cy):
     # Recht weit rechts -> Fressbereich
     if cx > (STALL_X_MIN + 0.75 * (STALL_X_MAX - STALL_X_MIN)):
@@ -35,6 +32,7 @@ def name_from_centroid(cx, cy):
     # Rest -> Gang/Übergang
     return "Übergangs-/Gangzone"
 
+# Zeichnet Hintergrundbild oder Fallback-Rechteck in die Achse.
 def _load_bg_image(ax):
     if os.path.exists(ASSETS_BG):
         try:
@@ -43,13 +41,13 @@ def _load_bg_image(ax):
             return True
         except Exception:
             pass
-    # Fallback: helles Rechteck als Schema
     ax.imshow(
         np.ones((10, 10, 3)),
         extent=[STALL_X_MIN, STALL_X_MAX, STALL_Y_MAX, STALL_Y_MIN]
     )
     return False
 
+# Erzeugt eine Stallübersicht als PNG-Data-URL: Hintergrund + gelernte Zonen + Legende.
 def generate_zone_overview_image(
     folder_path,
     date: str | None,
@@ -59,7 +57,7 @@ def generate_zone_overview_image(
     max_fit_points: int = 20000,
     random_state: int = 42
 ):
-    """Erstellt ein Bild: Hintergrund (Stall) + gelernten Zonen (als farbige Flächen) + Legende."""
+    #Erstellt ein Bild: Hintergrund (Stall) + gelernten Zonen (als farbige Flächen) + Legende.
     df = load_behavior_data(folder_path)
     if df.empty:
         return "Keine Daten geladen."
@@ -85,19 +83,17 @@ def generate_zone_overview_image(
     centers = kmeans.cluster_centers_
     zone_names = [name_from_centroid(cx, cy) for (cx, cy) in centers]
 
-    # Einfache Polygone um Cluster (konvexe Hülle der Clusterpunkte)
+    # Konvexe Hüllen optional für Zonenumrisse
     try:
         from scipy.spatial import ConvexHull
         use_hull = True
     except Exception:
         use_hull = False
 
-    # Für die Hüllen brauchen wir ein paar Punkte pro Cluster
     labels = kmeans.predict(df[feat_cols].values)
     df_plot = df.copy()
     df_plot["zone_id"] = labels  # 0..K-1
 
-    # Plot
     fig, ax = plt.subplots(figsize=(8, 6))
     ax.set_xlim(STALL_X_MIN - 20, STALL_X_MAX + 20)
     ax.set_ylim(STALL_Y_MAX + 20, STALL_Y_MIN - 20)  # invert y
@@ -107,14 +103,12 @@ def generate_zone_overview_image(
 
     _load_bg_image(ax)
 
-    # Farben pro Zone (wiederverwendbar)
     cmap = plt.get_cmap("tab10")
     handles = []
     for zid in range(len(centers)):
         color = cmap(zid % 10)
         pts = df_plot[df_plot["zone_id"] == zid][["x_center", "y_center"]].values
 
-        # Hülle zeichnen, sonst Punktwolke dünn
         if use_hull and len(pts) >= 3:
             try:
                 hull = ConvexHull(pts)
@@ -129,10 +123,8 @@ def generate_zone_overview_image(
         ax.scatter([cx], [cy], s=60, color=color, edgecolor="black", zorder=3)
         ax.text(cx, cy, f"Zone {zid+1}", ha="center", va="center", fontsize=9, weight="bold")
 
-        # Legenden-Handle sammeln
         handles.append(plt.Line2D([0],[0], marker='s', linestyle='None', color=color, label=f"Zone {zid+1} – {zone_names[zid]}"))
 
-    # Legende rechts außen
     if handles:
         ax.legend(handles=handles, title="Zonenzuordnung", bbox_to_anchor=(1.02, 1), loc="upper left")
 

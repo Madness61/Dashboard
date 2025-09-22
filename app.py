@@ -55,6 +55,7 @@ TABS = {
 
 
 # === Helpers ===
+# Liefert das jüngste verfügbare Datum aus dem Datenordner oder None.
 def _latest_date(folder: str) -> str | None:
     try:
         df = load_behavior_data(folder)
@@ -65,6 +66,7 @@ def _latest_date(folder: str) -> str | None:
         return None
 
 
+# Erzeugt eine neutrale Platzhalterbox für die Vorschau.
 def _placeholder_box(text="Klicke für mehr Details."):
     return html.Div(
         text,
@@ -73,6 +75,7 @@ def _placeholder_box(text="Klicke für mehr Details."):
     )
 
 
+# Wrappt eine Plotly-Figure als kompakten Vorschau-Graphen.
 def _small_graph(fig):
     return dcc.Graph(
         figure=fig,
@@ -81,6 +84,7 @@ def _small_graph(fig):
     )
 
 
+# Baut eine einheitliche Vorschau-Karte mit Titel, Body und Link.
 def _preview_card(title: str, body_component, href: str):
     """Einheitliche Preview-Card mit Button immer am unteren Rand."""
     return dbc.Card(
@@ -101,6 +105,7 @@ def _preview_card(title: str, body_component, href: str):
     )
 
 
+# Erzeugt die vier Vorschaukarten für die Startseite.
 def generate_preview_cards():
     """Erstellt vier Vorschaukarten (eine pro Modul)."""
     data_folder = "data/action_detection/loaded"
@@ -169,6 +174,7 @@ def generate_preview_cards():
     return cards
 
 
+# Liefert das Layout der Vorschauseite mit 4 Karten.
 def preview_layout():
     cards = generate_preview_cards()
     return dbc.Container(
@@ -189,7 +195,7 @@ def preview_layout():
 app.layout = html.Div([dcc.Location(id="url", refresh=False), html.Div(id="page-content")])
 
 
-# === Routing mit einheitlichem Seiten-Container + Zurück-Link ===
+# Wählt anhand des Pfads die Seite aus und rendert sie mit Zurück-Link.
 @app.callback(Output("page-content", "children"), Input("url", "pathname"))
 def display_page(pathname):
     if pathname in ("/", "", None):

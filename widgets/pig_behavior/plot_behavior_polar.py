@@ -2,6 +2,7 @@ import pandas as pd
 import plotly.express as px
 from widgets.utils import load_behavior_data, BEHAVIORS
 
+# Erzeugt ein Polar-Bar-Diagramm für eine Stunde aus einem DataFrame.
 def generate_polar_figure(df, hour, title_prefix="Aktivitätsverteilung", scale="linear"):
     hour_df = df[df['hour'] == hour]
 
@@ -34,7 +35,7 @@ def generate_polar_figure(df, hour, title_prefix="Aktivitätsverteilung", scale=
     )
     return fig
 
-
+# Baut zwei Polar-Charts: aggregiert über alle Tage und gefiltert auf ein Datum.
 def generate_two_polar_charts(hour, date, scale="linear"):
     df = load_behavior_data("data/action_detection/loaded")  # Pfad wird übergeben
 

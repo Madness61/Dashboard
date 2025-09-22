@@ -1,3 +1,4 @@
+# Berechnet pro Verhalten Schwellenwerte (Mean, Gelb ±10 %, Rot ±20 %) aus einem XES-Log basierend auf täglicher Gesamtdauer.
 def get_behavior_thresholds(xes_path, behaviors):
     from pm4py.objects.log.importer.xes import importer as xes_importer
     import pm4py

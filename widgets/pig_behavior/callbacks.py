@@ -6,7 +6,9 @@ from widgets.pig_behavior.layout import DEFAULT_XES_PATH, EXCLUDED_BEHAVIORS
 
 PKL_FOLDER = "data/action_detection/loaded"
 
+# Registriert alle Callbacks für das Modul "pig_behavior".
 def register_callbacks(app):
+    # Aktualisiert den Balkenplot je nach ausgewähltem Verhalten; gibt Bild oder Fehlermeldung zurück.
     @app.callback(
         Output("behavior-plot-output", "children"),
         Input("behavior-selector", "value"),
@@ -18,6 +20,7 @@ def register_callbacks(app):
             return html.Img(src=image_src, style={"max-width": "100%"})
         return html.P(image_src, style={"color": "red"})
 
+    # Aktualisiert zwei Polar-Charts (aggregiert und tagesbezogen) basierend auf Stunde, Skalierung und Datum.
     @app.callback(
         Output("polar-graph-all", "figure"),
         Output("polar-graph-day", "figure"),
@@ -28,6 +31,7 @@ def register_callbacks(app):
     def update_polar_plots(hour, scale, date):
         return generate_two_polar_charts(hour, date, scale)
 
+    # Aktualisiert die Tagesmuster-Heatmap für das gewählte Verhalten.
     @app.callback(
         Output("behavior-heatmap", "figure"),
         Input("heatmap-behavior-selector", "value"),
@@ -36,6 +40,7 @@ def register_callbacks(app):
         fig = generate_behavior_heatmap(PKL_FOLDER, behavior)
         return fig
     
+    # Aktualisiert die Aktivitätsbudget-Heatmap für das gewählte Datum.
     @app.callback(
         Output("single-day-heatmap", "figure"),
         Input("heatmap-date-selector", "value")

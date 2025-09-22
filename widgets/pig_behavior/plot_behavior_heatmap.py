@@ -5,6 +5,7 @@ from widgets.utils import load_behavior_data, BEHAVIORS
 PKL_FOLDER = "data/action_detection/loaded"
 HOURS_RANGE = range(6, 19)
 
+# Baut eine Heatmap: Mittelwerte eines Verhaltens je Tag×Stunde über alle Daten.
 def generate_behavior_heatmap(folder_path, behavior='feeding'):
     df = load_behavior_data(folder_path)
     if df.empty or behavior not in df.columns:
@@ -35,7 +36,7 @@ def generate_behavior_heatmap(folder_path, behavior='feeding'):
 
     return fig
 
-
+# Baut eine Tages-Heatmap: Anteil dominanter Verhaltensklassen je Stunde für ein Datum.
 def generate_behavior_heatmap_for_day(date_str):
     df = load_behavior_data(PKL_FOLDER)
     if df.empty:

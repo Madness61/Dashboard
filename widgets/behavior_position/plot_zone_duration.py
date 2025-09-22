@@ -1,14 +1,5 @@
-"""
-Aufenthaltsdauer je Zone (Barplot) auf Basis eines *tagesweit* gelernten Zonenmodells.
-
-- Die Zonen werden pro Tag (ohne Verhaltensfilter) mittels KMeans gelernt und gecacht.
-- Für die Dauerberechnung filtern wir auf das gewünschte Verhalten, weisen aber mit dem
-  Tages-Modell die Zone zu -> Zone bleibt über Verhaltenswechsel stabil.
-- Optionales Sampling beim Zählen beschleunigt die Aggregation; die Ergebnisse werden
-  auf die Gesamtmenge hochskaliert.
-
-Rückgabe: data:image/png;base64,...  (oder ein Fehlertext)
-"""
+# Barplot Aufenthaltsdauer je Zone auf Basis eines tagesweit gelernten KMeans-Zonenmodells.
+# Zonen werden pro Tag ohne Verhaltensfilter gelernt und gecacht; Darstellung filtert nach Verhalten.
 
 from __future__ import annotations
 
@@ -26,7 +17,7 @@ from widgets.behavior_position.zone_learning import (
 
 matplotlib.use("Agg")
 
-
+# Erzeugt einen Balkenplot der Aufenthaltsdauer je Zone für Verhalten+Datum; Rückgabe als Base64-PNG oder Fehlertext.
 def generate_zone_duration_image(
     folder_path: str,
     behavior: str,
@@ -37,34 +28,6 @@ def generate_zone_duration_image(
     max_fit_points: int = 20_000,
     random_state: int = 42,
 ) -> str:
-    """
-    Erzeugt einen Balkenplot der Aufenthaltsdauer (in Stunden) je automatisch gelernter Zone
-    für ein gegebenes Verhalten an einem Tag. Zonen sind pro Tag fix (lernen ohne Verhaltensfilter).
-
-    Parameters
-    ----------
-    folder_path : str
-        Ordner mit den geladenen Pickle-Dateien (load_behavior_data liest daraus).
-    behavior : str
-        Verhalten, für das die Dauer je Zone berechnet werden soll.
-    date : str
-        Datum im Format 'YYYY-MM-DD'.
-    n_clusters : int
-        Anzahl der Zonen (KMeans-Cluster).
-    fit_sample_fraction : float
-        Stichprobenanteil für das *Fitten* des Tages-Modells.
-    predict_sample_fraction : float | None
-        Stichprobenanteil für das *Zählen* (Zuweisung + Aggregation). None = alle Daten.
-    max_fit_points : int
-        Obergrenze der Punkte beim Fitten (Performance).
-    random_state : int
-        RNG für reproduzierbares Sampling.
-
-    Returns
-    -------
-    str
-        "data:image/png;base64,..." oder ein Fehlertext.
-    """
     if not date:
         return "Kein Datum gewählt."
 

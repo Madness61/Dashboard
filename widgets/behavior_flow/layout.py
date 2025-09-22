@@ -4,9 +4,10 @@ import pandas as pd
 
 from widgets.utils import load_behavior_data
 
+# Datenordner für PKL-Dateien.
 PKL_FOLDER = "data/action_detection/loaded"
 
-
+# Baut die Prozessfluss-Ansicht: Datumsauswahl, DFG-Graph, Analysebericht und Top-Sequenzen.
 def layout():
     df = load_behavior_data(PKL_FOLDER)
     if df.empty:
@@ -47,7 +48,8 @@ def layout():
             html.Hr(className="my-4"),
 
             # --- Analysebericht ---
-            html.H5("Analysebericht"),
+            html.H5("Analysebericht")
+            ,
             dbc.Card(
                 dbc.CardBody(
                     html.Pre(
