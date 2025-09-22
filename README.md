@@ -4,11 +4,12 @@ Ein interaktives Dashboard zur Visualisierung von **Aktivitätsbudgets**, **Verh
 
 ## Start
 
-1. Daten (`.pkl`) nach `data/action_detection/loaded` legen.
-2. App starten:
+1. Die Daten von <https://zenodo.org/records/7763839> herunterladen:  
+2. Anschließend das Archiv entpacken und den Inhalt in den Projektordner `data/` legen.
+3. App starten:
    ```bash
    python app.py
-3. Browser öffnen: http://127.0.0.1:8050/
+4. Browser öffnen: http://127.0.0.1:8050/
 
 ## Requirements
 - dash>=2.11
@@ -28,14 +29,14 @@ Ein interaktives Dashboard zur Visualisierung von **Aktivitätsbudgets**, **Verh
 ├── assets/                       # CSS / statische Dateien
 ├── data/
 │   └── action_detection/
-│       └── loaded/              # hier liegen die .pkl-Dateien (Eingabedaten)
+│       └── loaded/              # hier liegen die .pkl-Dateien 
 │   └── … 
 ├── widgets/
 │   ├── utils.py                 # Datenladefunktionen, BEHAVIORS-Liste
 │   ├── pig_behavior/            # Modul für Verhaltensanalyse
 │   ├── behavior_position/       # Modul für Positionen & Zonen
 │   ├── activity_budget/         # Modul für Aktivitätsbudget
-│   └── behavior_flow/           # Modul für Behavior Flows (DFG)
+│   └── behavior_flow/           # Modul für Behavior Flows 
 └── …                            # weitere Dateien
 
 ```
